@@ -1,5 +1,3 @@
-echo "Backend CICD working";
-exit;
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -25,6 +23,7 @@ $sql = "INSERT INTO orders (name, product, quantity, address)
 
 if ($conn->query($sql) === TRUE) {
     echo "Order placed successfully";
+    echo "Backend CICD working";
 } else {
     echo "Error";
 }
