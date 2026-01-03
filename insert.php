@@ -1,5 +1,5 @@
 <?php
-echo "Backend CICD working";
+echo "Backend CICD working successfully";
 exit;
 
 ini_set('display_errors', 1);
