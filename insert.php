@@ -1,6 +1,6 @@
 <?php
 
-echo "Backend CICD Working";
+echo "Backend CICD Working\n";
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
