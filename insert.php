@@ -23,7 +23,6 @@ $sql = "INSERT INTO orders (name, product, quantity, address)
 
 if ($conn->query($sql) === TRUE) {
     echo "Order placed successfully";
-    echo "Backend CICD working";
 } else {
     echo "Error";
 }
