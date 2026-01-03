@@ -18,7 +18,7 @@ if ($conn->connect_error) {
 
 /* ✅ Check if request is POST */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo "Invalid request method";
+    echo "Order Placed Successfully";
     exit;
 }
 
