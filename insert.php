@@ -1,7 +1,5 @@
 <?php
-
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header("Access-Control-Allow-Origin: *");
@@ -11,36 +9,38 @@ header("Access-Control-Allow-Headers: Content-Type");
 require 'db.php';
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die("DB connection failed");
 }
 
-/* ✅ Check if request is POST */
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+/* Health check for browser */
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo "GREEN BACKEND ACTIVE";
     exit;
 }
 
-/* ✅ Safely fetch POST values */
-$name     = $_POST['name']     ?? '';
-$product  = $_POST['product']  ?? '';
-$quantity = $_POST['quantity'] ?? '';
-$address  = $_POST['address']  ?? '';
+/* Only POST allowed for orders */
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit;
+}
 
-/* ✅ Validate input */
-if (empty($name) || empty($product) || empty($quantity) || empty($address)) {
+$name     = $_POST['name'] ?? '';
+$product  = $_POST['product'] ?? '';
+$quantity = $_POST['quantity'] ?? '';
+$address  = $_POST['address'] ?? '';
+
+if (!$name || !$product || !$quantity || !$address) {
     echo "Missing required fields";
     exit;
 }
 
-/* ✅ Insert data */
 $sql = "INSERT INTO orders (name, product, quantity, address)
         VALUES ('$name', '$product', '$quantity', '$address')";
 
-if ($conn->query($sql) === TRUE) {
-    echo "Order placed successfully";
+if ($conn->query($sql)) {
+    echo "Order Placed Successfully";
 } else {
-    echo "Database error";
+    echo "Order Failed";
 }
 
 $conn->close();
-?>
