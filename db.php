@@ -1,7 +1,5 @@
 <?php
 
-echo "Backend CICD running successfully";
-
 require 'vendor/autoload.php';
 
 use Aws\SecretsManager\SecretsManagerClient;
