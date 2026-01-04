@@ -1,4 +1,7 @@
 <?php
+
+$env = trim(@file_get_contents(__DIR__ . '/ENVIRONMENT'));
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -12,10 +15,21 @@ if ($conn->connect_error) {
     die("DB connection failed");
 }
 
+// Health check
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    echo "GREEN BACKEND ACTIVE on " . gethostname();
+    echo $env === 'LIVE'
+        ? "LIVE BACKEND (" . gethostname() . ")"
+        : "UNDER WORK BACKEND (" . gethostname() . ")";
     exit;
 }
+
+// Block orders if under work
+if ($env !== 'LIVE') {
+    echo "Backend under maintenance. Orders temporarily disabled.";
+    exit;
+}
+
+// Normal order logic continues here...
 
 /* Only POST allowed for orders */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
