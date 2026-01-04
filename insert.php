@@ -13,7 +13,7 @@ if ($conn->connect_error) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    echo "BLUE BACKEND ACTIVE on " . gethostname();
+    echo "GREEN BACKEND ACTIVE on " . gethostname();
     exit;
 }
 
