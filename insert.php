@@ -16,7 +16,7 @@ if ($conn->connect_error) {
 
 /* ✅ Check if request is POST */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo "Order Placed Successfully";
+    echo "GREEN BACKEND ACTIVE";
     exit;
 }
 
