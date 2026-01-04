@@ -10,7 +10,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['backend-ssh-key']) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@10.0.1.105 'echo CONNECTED FROM JENKINS'
+                    ssh -o StrictHostKeyChecking=no ec2-user@10.0.1.245 'echo CONNECTED FROM JENKINS'
                     """
                 }
             }
@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['backend-ssh-key']) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@10.0.1.105 '
+                    ssh -o StrictHostKeyChecking=no ec2-user@10.0.1.245 '
                         cd /var/www/html
                         git pull origin main
                     '
