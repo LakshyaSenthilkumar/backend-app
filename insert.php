@@ -12,9 +12,8 @@ if ($conn->connect_error) {
     die("DB connection failed");
 }
 
-/* Health check for browser */
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    echo "BLUE BACKEND ACTIVE";
+    echo "BLUE BACKEND ACTIVE on " . gethostname();
     exit;
 }
 
