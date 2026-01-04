@@ -14,7 +14,7 @@ if ($conn->connect_error) {
 
 /* Health check for browser */
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    echo "GREEN BACKEND ACTIVE";
+    echo "BLUE BACKEND ACTIVE";
     exit;
 }
 
