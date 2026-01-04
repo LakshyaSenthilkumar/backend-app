@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        BACKEND_PRIVATE_IP = "10.0.1.105"
+        BACKEND_PRIVATE_IP = "10.0.1.245"
     }
 
     stages {
