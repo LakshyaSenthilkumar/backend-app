@@ -4,51 +4,68 @@ pipeline {
     environment {
         GREEN_IP = "10.0.1.245"
         BLUE_IP  = "10.0.1.105"
+        TG_ARN   = "arn:aws:elasticloadbalancing:us-east-1:665758762277:targetgroup/backend-tg/17417b7bd9774b7b"
+        AWS_REGION = "us-east-1"
     }
 
     stages {
 
-        stage('Detect Active Backend') {
+        stage('Detect Live Backend') {
             steps {
-                sshagent(credentials: ['backend-ssh-key']) {
-                    script {
-                        def greenEnv = sh(
-                            script: """
-                            ssh -o StrictHostKeyChecking=no ec2-user@${GREEN_IP} \
-                            'cat /var/www/html/backend-app/ENVIRONMENT 2>/dev/null || echo UNDER_WORK'
-                            """,
-                            returnStdout: true
-                        ).trim()
+                script {
+                    def greenEnv = sh(
+                        script: "ssh ec2-user@${GREEN_IP} 'cat /var/www/html/backend-app/ENVIRONMENT'",
+                        returnStdout: true
+                    ).trim()
 
-                        echo "GREEN ENV = ${greenEnv}"
-
-                        if (greenEnv == "LIVE") {
-                            env.LIVE_IP = env.GREEN_IP
-                            env.IDLE_IP = env.BLUE_IP
-                            echo "🟢 GREEN is LIVE"
-                        } else {
-                            env.LIVE_IP = env.BLUE_IP
-                            env.IDLE_IP = env.GREEN_IP
-                            echo "🔵 BLUE is LIVE"
-                        }
+                    if (greenEnv == "LIVE") {
+                        env.CURRENT_LIVE = GREEN_IP
+                        env.NEW_LIVE = BLUE_IP
+                        echo "🟢 GREEN currently LIVE → switching to BLUE"
+                    } else {
+                        env.CURRENT_LIVE = BLUE_IP
+                        env.NEW_LIVE = GREEN_IP
+                        echo "🔵 BLUE currently LIVE → switching to GREEN"
                     }
                 }
             }
         }
 
-        stage('Deploy to IDLE Backend') {
+        stage('Deploy to NEW LIVE') {
             steps {
                 sshagent(credentials: ['backend-ssh-key']) {
                     sh """
-                    echo "Deploying to IDLE backend: ${IDLE_IP}"
-
-                    ssh -o StrictHostKeyChecking=no ec2-user@${IDLE_IP} '
+                    ssh ec2-user@${NEW_LIVE} '
                         cd /var/www/html/backend-app
                         git pull origin main
-                        echo LIVE | sudo tee /var/www/html/backend-app/ENVIRONMENT
+                        echo LIVE | sudo tee ENVIRONMENT
                     '
+                    """
+                }
+            }
+        }
 
-                    ssh -o StrictHostKeyChecking=no ec2-user@${LIVE_IP} '
+        stage('Switch ALB Traffic') {
+            steps {
+                sh """
+                aws elbv2 deregister-targets \
+                  --target-group-arn ${TG_ARN} \
+                  --targets Id=${CURRENT_LIVE} \
+                  --region ${AWS_REGION}
+
+                aws elbv2 register-targets \
+                  --target-group-arn ${TG_ARN} \
+                  --targets Id=${NEW_LIVE} \
+                  --region ${AWS_REGION}
+                """
+            }
+        }
+
+        stage('Mark OLD as UNDER_WORK') {
+            steps {
+                sshagent(credentials: ['backend-ssh-key']) {
+                    sh """
+                    ssh ec2-user@${CURRENT_LIVE} '
                         echo UNDER_WORK | sudo tee /var/www/html/backend-app/ENVIRONMENT
                     '
                     """
@@ -56,17 +73,11 @@ pipeline {
             }
         }
 
-        stage('Verify Switch') {
+        stage('Done') {
             steps {
-                sshagent(credentials: ['backend-ssh-key']) {
-                    sh """
-                    echo "NEW LIVE BACKEND:"
-                    ssh ec2-user@${IDLE_IP} 'cat /var/www/html/backend-app/ENVIRONMENT'
-
-                    echo "OLD BACKEND:"
-                    ssh ec2-user@${LIVE_IP} 'cat /var/www/html/backend-app/ENVIRONMENT'
-                    """
-                }
+                echo "✅ Traffic switched successfully"
+                echo "LIVE backend: ${NEW_LIVE}"
+                echo "OLD backend removed from ALB"
             }
         }
     }
